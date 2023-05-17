@@ -154,6 +154,14 @@
   (setq evil-collection-mode-list '(dashboard dired ibuffer snake))
   (evil-collection-init))
 
+;; Make movement keys work like they should
+(define-key evil-normal-state-map (kbd "<remap> <evil-next-line>") 'evil-next-visual-line)
+(define-key evil-normal-state-map (kbd "<remap> <evil-previous-line>") 'evil-previous-visual-line)
+(define-key evil-motion-state-map (kbd "<remap> <evil-next-line>") 'evil-next-visual-line)
+(define-key evil-motion-state-map (kbd "<remap> <evil-previous-line>") 'evil-previous-visual-line)
+; Make horizontal movement cross lines                                    
+(setq-default evil-cross-lines t)
+
 (use-package hydra)
 
 (defhydra hydra-text-scale (:timeout 4)
