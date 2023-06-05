@@ -212,6 +212,14 @@
   ;;(variable-pitch-mode 1)
   (visual-line-mode 1))
 
+(defun efs/org-mode-visual-fill ()
+  (setq visual-fill-column-width 100
+        visual-fill-column-center-text t)
+  (visual-fill-column-mode 1))
+
+(use-package visual-fill-column
+  :hook (org-mode . efs/org-mode-visual-fill))
+
 (use-package org
   :hook (org-mode . efs/org-mode-setup)
   :config
@@ -282,7 +290,7 @@
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
  '(package-selected-packages
-   '(org-alert dashboard all-the-icons-ibuffer all-the-icons-dired org-fragtog org-bullets counsel-projectile projectile hydra counsel ivy-rich which-key general ivy evil-collection evil doom-modeline all-the-icons doom-themes use-package)))
+   '(visual-fill-column org-alert dashboard all-the-icons-ibuffer all-the-icons-dired org-fragtog org-bullets counsel-projectile projectile hydra counsel ivy-rich which-key general ivy evil-collection evil doom-modeline all-the-icons doom-themes use-package)))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
