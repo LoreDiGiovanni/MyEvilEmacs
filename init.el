@@ -5,6 +5,9 @@
 (tooltip-mode -1)           ; Disable tooltips
 (set-fringe-mode 10)        ; Give some breathing room
 (menu-bar-mode -1)            ; Disable the menu bar
+
+(set-frame-parameter nil 'alpha-background 85)
+(add-to-list 'default-frame-alist '(alpha-background . 85))
 ;;(setq visible-bell t)
 
 ;; Mac os specific settings 
@@ -25,7 +28,7 @@
 (setq make-backup-files nil)
 
 ;; font
-(set-face-attribute 'default nil :font "Mononoki Nerd Font" :height 170)
+(set-face-attribute 'default nil :font "Mononoki Nerd Font" :height 142)
 
 ;; Make ESC quit prompts
 (global-set-key (kbd "<escape>") 'keyboard-escape-quit)
@@ -80,11 +83,25 @@
        "."     '(counsel-find-file :which-key "Find file")
        "d d" '(dired :which-key "Open dired")
        "d j" '(dired-jump :which-key "Dired jump to current")
+       "d n f" '(dired-create-empty-file :which-key "Dired create new file")
+       
        ;;Window
        "v s"   '(evil-window-vsplit :which-key "Open vertical split")
        "h s"   '(evil-window-split :which-key "Open horizontal split")
        "w w"   '(evil-window-next :which-key "Move to the next window")
-       "w t"   '(shell :which-key "Run terminal")
+
+       ;; Terminal
+       "h w t" (lambda ()
+                 (interactive)
+                 (split-window-below) ;; Split orizzontale
+                 (other-window 1)
+                 (vterm))
+       "v w t" (lambda ()
+                 (interactive)
+                 (split-window-right) ;; Split verticale
+                 (other-window 1)
+                 (vterm))
+
        ;; text scale
        "t s"   '(hydra-text-scale/body :which-key "Hydra for text scaling")
        ;; project
@@ -97,6 +114,15 @@
        "o a"   '(org-agenda :which-key "Org agenda")
        "a l" '(org-agenda-list :which-key "Org agenda list")
        "t l"   '(org-tags-view :which-key "Org tasks")
+       ;;code
+       "d b"   '(flymake-show-buffer-diagnostics :which-key "show diagnostics for the buffer")
+       ;;project
+       "p p" '(projectile-switch-project :which-key "switch project")
+       "p a" '(projectile-add-known-project :which-key "add project")
+       "p r" '(projectile-remove-known-project :which-key "remove project")
+       ;;magit
+       "g s" '(magit-status :which-key "magit status")
+       
 )
 
 ;;Ivy
@@ -146,9 +172,13 @@
   (setq evil-want-keybinding nil)
   (setq evil-vsplit-window-right t)
   (setq evil-split-window-below t)
-  (evil-mode))
+  (evil-mode)
+  :config
+  (add-hook 'org-mode-hook
+            (lambda ()
+              (define-key evil-normal-state-local-map (kbd "TAB") 'org-cycle))))
 
-(use-package evil-collection
+  (use-package evil-collection
   :after evil
   :config
   (setq evil-collection-mode-list '(dashboard dired ibuffer snake))
@@ -223,6 +253,7 @@
 (use-package org
   :hook (org-mode . efs/org-mode-setup)
   :config
+  (define-key org-mode-map (kbd "TAB") 'org-cycle)
   (setq org-ellipsis "⤵")
   (setq org-agenda-files
 	'("~/Org"))
@@ -272,7 +303,7 @@
   (setq dashboard-startup-banner 'logo) ;; use standard emacs logo as banner
   ;;(setq dashboard-startup-banner "~/.emacs.d/emacs-dash.png")  ;; use custom image as banner
   (setq dashboard-center-content t) ;; set to 't' for centered content
-  (setq dashboard-items '((recents . 5)
+  (setq dashboard-items '((recents . 10)
                           (agenda . 5 )
                           (bookmarks . 3)
                           (projects . 3)
@@ -281,8 +312,68 @@
   (dashboard-setup-startup-hook))
 (setq initial-buffer-choice #'(lambda () (get-buffer-create "*dashboard*")))
 
+; LSP
+(use-package lsp-mode
+  :commands (lsp lsp-deferred)
+  :hook (lsp-mode . efs/lsp-mode-setup)
+  :init
+  (setq lsp-keymap-prefix "C-c l")  ;; Or 'C-l', 's-l'
+  :config
+  (lsp-enable-which-key-integration t))
 
+(use-package lsp-ui
+  :hook (lsp-mode . lsp-ui-mode)
+  :custom
+  (lsp-ui-doc-position 'bottom))
 
+(use-package lsp-treemacs
+  :after lsp)
+
+(use-package lsp-ivy)
+
+(use-package typescript-mode
+  :mode "\\.ts\\'"
+  :hook (typescript-mode . lsp-deferred)
+  :config
+  (setq typescript-indent-level 2))
+
+(use-package company
+  :after lsp-mode
+  :hook (lsp-mode . company-mode)
+  :bind (:map company-active-map
+         ("<tab>" . company-complete-selection))
+        (:map lsp-mode-map
+         ("<tab>" . company-indent-or-complete-common))
+  :custom
+  (company-minimum-prefix-length 1)
+  (company-idle-delay 0.0))
+
+(use-package company-box
+  :hook (company-mode . company-box-mode))
+
+(use-package lsp-pyright
+  :ensure t)
+
+;magit
+(use-package magit
+  :custom
+  (magit-display-buffer-function #'magit-display-buffer-same-window-except-diff-v1)
+  :config
+  ;; Abilita evil-mode in Magit
+  (evil-define-key 'normal magit-mode-map
+    (kbd "j") 'magit-section-forward
+    (kbd "k") 'magit-section-backward
+    (kbd "h") 'magit-section-previous-sibling
+    (kbd "l") 'magit-section-next-sibling))
+
+(use-package vterm
+  :commands vterm
+  :config
+  (setq term-prompt-regexp "^[^#$%>\n]*[#$%>] *")  ;; Set this to match your custom shell prompt
+  (setq vterm-shell "zsh")                       ;; Set this to customize the shell to launch
+  (setq vterm-max-scrollback 10000))
+
+(setq-default truncate-lines t);
 
 (custom-set-variables
  ;; custom-set-variables was added by Custom.
@@ -290,7 +381,7 @@
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
  '(package-selected-packages
-   '(visual-fill-column org-alert dashboard all-the-icons-ibuffer all-the-icons-dired org-fragtog org-bullets counsel-projectile projectile hydra counsel ivy-rich which-key general ivy evil-collection evil doom-modeline all-the-icons doom-themes use-package)))
+   '(org-super-agenda emacs-vterm vterm forge magit lsp-pyright lsp-ivy lsp-treemacs lsp-ui lsp-mode visual-fill-column org-alert dashboard all-the-icons-ibuffer all-the-icons-dired org-fragtog org-bullets counsel-projectile projectile hydra counsel ivy-rich which-key general ivy evil-collection evil doom-modeline all-the-icons doom-themes use-package)))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
