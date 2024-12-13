@@ -6,9 +6,8 @@
 (set-fringe-mode 10)        ; Give some breathing room
 (menu-bar-mode -1)            ; Disable the menu bar
 
-(set-frame-parameter nil 'alpha-background 85)
-(add-to-list 'default-frame-alist '(alpha-background . 85))
-;;(setq visible-bell t)
+;;(set-frame-parameter nil 'alpha-background 85)
+;;(add-to-list 'default-frame-alist '(alpha-background . 85))
 
 ;; Mac os specific settings 
 (setq mac-right-option-modifier nil) 
@@ -29,6 +28,9 @@
 
 ;; font
 (set-face-attribute 'default nil :font "Mononoki Nerd Font" :height 142)
+
+(set-fontset-font t 'japanese-jisx0208 (font-spec :family "Noto Sans CJK JP"))
+
 
 ;; Make ESC quit prompts
 (global-set-key (kbd "<escape>") 'keyboard-escape-quit)
@@ -101,6 +103,8 @@
                  (split-window-right) ;; Split verticale
                  (other-window 1)
                  (vterm))
+       
+       "w t"   '(vterm :which-key "Open vterm in current window")
 
        ;; text scale
        "t s"   '(hydra-text-scale/body :which-key "Hydra for text scaling")
@@ -114,6 +118,7 @@
        "o a"   '(org-agenda :which-key "Org agenda")
        "a l" '(org-agenda-list :which-key "Org agenda list")
        "t l"   '(org-tags-view :which-key "Org tasks")
+       "a s"   '(org-schedule :which-key "Schedule tasks")
        ;;code
        "d b"   '(flymake-show-buffer-diagnostics :which-key "show diagnostics for the buffer")
        ;;project
@@ -122,6 +127,12 @@
        "p r" '(projectile-remove-known-project :which-key "remove project")
        ;;magit
        "g s" '(magit-status :which-key "magit status")
+       ;;org
+       "i t" '(org-toggle-inline-images :which-key "toggle in line immage")
+       "s c" '(flyspell-mode :which-key "toggle spell check")
+       ;;org-roam
+       "n f" '(org-roam-node-find :which-key "search org in org-roam")
+       "n i" '(org-roam-node-insert :which-key "add link to org roam-file")
        
 )
 
@@ -257,11 +268,21 @@
   (setq org-ellipsis "⤵")
   (setq org-agenda-files
 	'("~/Org"))
+  ;;This make the immage respetct the size in
+  ;; #+ATTR_ORG: :width 350
+  (setq org-image-actual-width (list 550))
+  (setq org-startup-with-inline-images t)
+
+
   (setq org-format-latex-options (plist-put org-format-latex-options :scale 1.70)))
 
-(use-package org-bullets
-  :after org
-  :hook (org-mode . org-bullets-mode))
+  ;; Alphabetical list true 
+  (setq org-list-allow-alphabetical t)
+
+
+;;(use-package org-bullets
+;;  :after org
+;;  :hook (org-mode . org-bullets-mode))
 
 (use-package org-fragtog)
 
@@ -276,20 +297,23 @@
 (setq python-indent-guess-indent-offset t)  
 (setq python-indent-guess-indent-offset-verbose nil)
 
-(use-package org-alert
+;;Org-Roam
+(use-package org-roam
   :ensure t
-  :custom (alert-default-style 'osx-notifier)
+  :custom
+  (org-roam-directory "~/RoamNotes")
+  :bind (("C-c n l" . org-roam-buffer-toggle)
+         ("C-c n f" . org-roam-node-find)
+         ("C-c n i" . org-roam-node-insert))
   :config
-  (setq org-alert-notification-title "Org agenda!")
-  (org-alert-enable))
+  (org-roam-setup))
 
-(setq org-image-actual-width 500)
 
 ;;ispell
 (setq ispell-program-name "aspell") 
 (setq ispell-list-command "list")
-(setq ispell-dictionary "italiano")
-
+(setq ispell-dictionary "it")
+;;(setq ispell-dictionary "en_US")
 
 (use-package all-the-icons-ibuffer
   :ensure t
@@ -381,7 +405,7 @@
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
  '(package-selected-packages
-   '(org-super-agenda emacs-vterm vterm forge magit lsp-pyright lsp-ivy lsp-treemacs lsp-ui lsp-mode visual-fill-column org-alert dashboard all-the-icons-ibuffer all-the-icons-dired org-fragtog org-bullets counsel-projectile projectile hydra counsel ivy-rich which-key general ivy evil-collection evil doom-modeline all-the-icons doom-themes use-package)))
+   '(org-roam org-super-agenda emacs-vterm vterm forge magit lsp-pyright lsp-ivy lsp-treemacs lsp-ui lsp-mode visual-fill-column org-alert dashboard all-the-icons-ibuffer all-the-icons-dired org-fragtog org-bullets counsel-projectile projectile hydra counsel ivy-rich which-key general ivy evil-collection evil doom-modeline all-the-icons doom-themes use-package)))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
